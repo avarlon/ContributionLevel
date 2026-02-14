@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ContributionLevel</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <style>
+        :root {
+            --primary-color: #d31145; /* AIA 브랜드 컬러 */
+            --card-bg: rgba(255, 255, 255, 0.96);
+            --text-main: #1e293b;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            /* 배경 이미지 설정 */
+            background-image: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--text-main);
+            min-height: 100vh;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+            backdrop-filter: blur(8px);
+        }
+
+        .system-label {
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--primary-color);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+
+        input[type="text"], select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            background-color: #fff;
+        }
+        
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(211, 17, 69, 0.1);
+        }
+
+        .market-section {
+            display: none;
+            background-color: #f8fafc;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 10px;
+            border: 1px dashed #cbd5e1;
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px -1px rgba(211, 17, 69, 0.3);
+        }
+
+        button:hover {
+            background-color: #b00e3a;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(211, 17, 69, 0.4);
+        }
+
+        #resultArea {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 15px;
+            background-color: #fff;
+            display: none;
+            text-align: center;
+            border: 2px solid #f1f5f9;
+        }
+
+        .result-score {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--primary-color);
+            margin: 10px 0;
+            line-height: 1;
+        }
+
+        .footer-note {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="system-label">Joint Work Efficiency System</div>
+    <h1>ContributionLevel</h1>
+    
+    <div class="form-group">
+        <label>의뢰인 성함</label>
+        <input type="text" id="userName" placeholder="성함을 입력하세요">
+    </div>
+    <div class="form-group">
+        <label>소속 지점명</label>
+        <input type="text" id="branchName" placeholder="지점명을 입력하세요">
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 25px 0;">
+
+    <div class="form-group">
+        <label>영업 대상자 구분</label>
+        <select id="customerType" onchange="toggleMarketSection()">
+            <option value="30">기존 고객 (기본 30점)</option>
+            <option value="40">신규 고객 (기본 40점)</option>
+        </select>
+    </div>
+
+    <div id="marketSection" class="market-section">
+        <label>시장 구분 (신규 고객 가중치)</label>
+        <select id="marketType">
+            <option value="-10">1차 시장 - 지인 (-10점)</option>
+            <option value="-5">2차 시장 - 소개 (-5점)</option>
+            <option value="0">3차 시장 - 개척 (0점)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>현재 진행 상황</label>
+        <select id="progressStatus">
+            <option value="5">제안 완료 단계 (+5점)</option>
+            <option value="0">컨설팅 진행 확정 (0점)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>컨설팅 핵심 분야</label>
+        <select id="consultingField">
+            <option value="10">인증 (+10점)</option>
+            <option value="20">자금 (+20점)</option>
+            <option value="5">일반경영 (+5점)</option>
+            <option value="5">절세 (+5점)</option>
+            <option value="30">R&D (+30점)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>예상 계약 규모 (만원)</label>
+        <select id="contractAmount">
+            <option value="20">100 이하 (+20점)</option>
+            <option value="15">200 이하 (+15점)</option>
+            <option value="0">300 이하 (0점)</option>
+            <option value="-10">500 이하 (-10점)</option>
+            <option value="-15">1,000 이하 (-15점)</option>
+            <option value="-20">1,000 초과 (-20점)</option>
+        </select>
+    </div>
+
+    <button onclick="calculateContribution()">최종 점수 산출</button>
+
+    <div id="resultArea">
+        <div id="resultInfo" style="font-weight: 600; color: #64748b; font-size: 0.95rem;"></div>
+        <div class="result-score" id="finalScore">0</div>
+        <div style="font-weight: 700; color: var(--text-main);">최종 Contribution Score</div>
+        <p class="footer-note">※ 위 점수는 산출 로직에 따른 참고 지표입니다.</p>
+    </div>
+</div>
+
+<script>
+    function toggleMarketSection() {
+        const customerType = document.getElementById('customerType').value;
+        const marketSection = document.getElementById('marketSection');
+        marketSection.style.display = (customerType === "40") ? "block" : "none";
+    }
+
+    function calculateContribution() {
+        const name = document.getElementById('userName').value || "User";
+        const branch = document.getElementById('branchName').value || "Branch";
+        
+        let score = parseInt(document.getElementById('customerType').value);
+
+        if (score === 40) {
+            score += parseInt(document.getElementById('marketType').value);
+        }
+
+        score += parseInt(document.getElementById('progressStatus').value);
+        score += parseInt(document.getElementById('consultingField').value);
+        score += parseInt(document.getElementById('contractAmount').value);
+
+        const resultArea = document.getElementById('resultArea');
+        const resultInfo = document.getElementById('resultInfo');
+        const finalScore = document.getElementById('finalScore');
+
+        resultInfo.innerHTML = `${branch} <span style="color: var(--primary-color);">${name}</span> 님의 분석 결과`;
+        finalScore.innerText = score;
+        resultArea.style.display = "block";
+
+        resultArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+</script>
+
+</body>
+</html>
