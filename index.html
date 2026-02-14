@@ -43,7 +43,7 @@
             display: none;
             flex-direction: column;
             animation: fadeIn 0.4s ease-out;
-            min-height: 420px;
+            min-height: 450px;
         }
 
         .step-card.active { display: flex; }
@@ -62,19 +62,15 @@
             transition: width 0.3s ease; width: 0%;
         }
 
-        h2 { font-size: 1.4rem; color: #1e293b; margin-bottom: 25px; line-height: 1.5; }
+        h2 { font-size: 1.4rem; color: #1e293b; margin-bottom: 25px; line-height: 1.5; word-break: keep-all; }
 
-        /* 입력 폼 스타일 */
         .input-group { margin-bottom: 15px; }
         input[type="text"] {
             width: 100%; padding: 15px; border: 2px solid #e2e8f0;
             border-radius: 12px; font-size: 1.1rem; box-sizing: border-box;
         }
 
-        /* 라디오 및 체크박스 커스텀 */
-        .option-container {
-            display: flex; flex-direction: column; gap: 10px;
-        }
+        .option-container { display: flex; flex-direction: column; gap: 10px; }
         .option-item {
             display: flex; align-items: center;
             padding: 15px; border: 2px solid #e2e8f0;
@@ -93,7 +89,6 @@
         .btn-next { background: var(--primary-color); color: white; }
         .btn-prev { background: #f1f5f9; color: #64748b; }
 
-        /* 결과 화면 */
         .result-label { font-size: 1rem; color: #64748b; margin-bottom: 10px; }
         .result-score { font-size: 4.5rem; font-weight: 900; color: var(--primary-color); margin: 15px 0; }
         .restart-btn { background: #1e293b; color: white; margin-top: 20px; }
@@ -108,15 +103,9 @@
     <div class="step-card active" id="step1">
         <div class="progress-bar"><div class="progress-fill" style="width: 15%"></div></div>
         <h2>의뢰자 본인의 정보를<br>입력해주세요.</h2>
-        <div class="input-group">
-            <input type="text" id="userName" placeholder="의뢰인 성함">
-        </div>
-        <div class="input-group">
-            <input type="text" id="branchName" placeholder="소속 지점명">
-        </div>
-        <div class="btn-group">
-            <button class="btn-next" onclick="nextStep(2)">다음으로</button>
-        </div>
+        <div class="input-group"><input type="text" id="userName" placeholder="의뢰인 성함"></div>
+        <div class="input-group"><input type="text" id="branchName" placeholder="소속 지점명"></div>
+        <div class="btn-group"><button class="btn-next" onclick="nextStep(2)">다음으로</button></div>
     </div>
 
     <div class="step-card" id="step2">
@@ -178,7 +167,7 @@
     <div class="step-card" id="step6">
         <div class="progress-bar"><div class="progress-fill" style="width: 90%"></div></div>
         <h2>예상 계약 규모 (단위: 만원)</h2>
-        <div class="option-container" style="overflow-y: auto; max-height: 250px;">
+        <div class="option-container" style="overflow-y: auto; max-height: 220px;">
             <label class="option-item"><input type="radio" name="amount" value="20" checked> 100 이하</label>
             <label class="option-item"><input type="radio" name="amount" value="15"> 200 이하</label>
             <label class="option-item"><input type="radio" name="amount" value="0"> 300 이하</label>
@@ -197,13 +186,16 @@
         <h1 style="margin: 0; color: #1e293b; font-size: 1.6rem;">최종 분배 기여도</h1>
         <div class="result-score" id="finalScore">0</div>
         <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 30px; line-height: 1.6;">
-            협업 참가자의 기여도를 바탕으로 산출된<br>공정한 분배 기준 점수입니다.
+            데이터를 구글 시트로 전송했습니다.<br>공정한 분배를 위한 지표로 활용하세요.
         </p>
         <button class="restart-btn" onclick="location.reload()">새로 측정하기</button>
     </div>
 </div>
 
 <script>
+    // ▼ [필독] 본인의 구글 앱스 스크립트 배포 URL을 여기에 입력하세요!
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbyqHgjX-DzSyhxz0vat12VRKrkbuykZw1BeHuVEC58A8FqZ-iW-JIvtcO5wkebg5JM/exec'; 
+
     let currentStep = 1;
 
     function nextStep(step) {
@@ -234,36 +226,63 @@
         }
     }
 
-    function calculateFinal() {
+    async function calculateFinal() {
         const name = document.getElementById('userName').value;
         const branch = document.getElementById('branchName').value;
         
-        let score = parseInt(document.querySelector('input[name="customerType"]:checked').value);
+        const customerTypeNode = document.querySelector('input[name="customerType"]:checked');
+        const marketTypeNode = document.querySelector('input[name="marketType"]:checked');
+        const statusNode = document.querySelector('input[name="progressStatus"]:checked');
+        const amountNode = document.querySelector('input[name="amount"]:checked');
+        const fieldNodes = document.querySelectorAll('input[name="field"]:checked');
 
-        if (score === 40) {
-            score += parseInt(document.querySelector('input[name="marketType"]:checked').value);
+        let score = parseInt(customerTypeNode.value);
+        let fieldsArray = [];
+        fieldNodes.forEach(f => { 
+            score += parseInt(f.value); 
+            fieldsArray.push(f.parentElement.innerText.trim());
+        });
+
+        if (customerTypeNode.value === "40") {
+            score += parseInt(marketTypeNode.value);
         }
+        score += parseInt(statusNode.value);
+        score += parseInt(amountNode.value);
 
-        score += parseInt(document.querySelector('input[name="progressStatus"]:checked').value);
-
-        // 컨설팅 분야 중복 계산 로직
-        const fields = document.querySelectorAll('input[name="field"]:checked');
-        fields.forEach(f => { score += parseInt(f.value); });
-
-        score += parseInt(document.querySelector('input[name="amount"]:checked').value);
-
+        // UI 업데이트
         document.querySelectorAll('.step-card').forEach(c => c.classList.remove('active'));
         document.getElementById('resultPage').classList.add('active');
-        
         document.getElementById('finalInfo').innerText = `${branch} ${name} 님의 분석 결과`;
         document.getElementById('finalScore').innerText = score;
+
+        // 구글 시트 전송용 객체 생성
+        const payload = {
+            branch: branch,
+            name: name,
+            customerType: customerTypeNode.parentElement.innerText.trim(),
+            marketType: (customerTypeNode.value === "40") ? marketTypeNode.parentElement.innerText.trim() : "-",
+            status: statusNode.parentElement.innerText.trim(),
+            fields: fieldsArray.join(", "),
+            amount: amountNode.parentElement.innerText.trim(),
+            score: score
+        };
+
+        // 시트로 전송 (no-cors 모드)
+        try {
+            fetch(scriptURL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+        } catch (e) { console.error("전송 에러:", e); }
     }
 
-    // 시각적 피드백: 선택 시 스타일 변경
+    // 선택 시 시각적 스타일 변경 이벤트
     document.addEventListener('change', (e) => {
-        if (e.target.name === 'customerType' || e.target.name === 'marketType' || 
-            e.target.name === 'progressStatus' || e.target.name === 'amount' || e.target.name === 'field') {
-            const items = e.target.closest('.option-container').querySelectorAll('.option-item');
+        if (e.target.closest('.option-container')) {
+            const container = e.target.closest('.option-container');
+            const items = container.querySelectorAll('.option-item');
             items.forEach(item => {
                 const input = item.querySelector('input');
                 if(input.checked) item.classList.add('selected');
